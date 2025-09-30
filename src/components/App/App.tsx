@@ -7,19 +7,16 @@ import SearchBar from '../SearchBar/SearchBar';
 import MovieGrid from '../MovieGrid/MovieGrid';
 import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
-import MovieModal from '../MovieModal/MovieModal'; // Імпортуємо модалку
+import MovieModal from '../MovieModal/MovieModal';
 
 const App = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState<string>('');
-  
-  // Новий стан для обраного фільму
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   useEffect(() => {
-    // ... (код для запиту фільмів залишається без змін)
     if (query === '') {
       return;
     }
@@ -38,7 +35,7 @@ const App = () => {
           setMovies(data.results);
         }
       } catch (err) {
-         console.error(err);
+        console.error(err);
         const message = 'There was an error, please try again...';
         setError(message);
         toast.error(message);
@@ -54,12 +51,10 @@ const App = () => {
     setQuery(searchQuery);
   };
 
-  // Функція для відкриття модального вікна
   const handleSelectMovie = (movie: Movie) => {
     setSelectedMovie(movie);
   };
 
-  // Функція для закриття модального вікна
   const handleCloseModal = () => {
     setSelectedMovie(null);
   };
@@ -74,7 +69,6 @@ const App = () => {
       {movies.length > 0 && <MovieGrid movies={movies} onSelect={handleSelectMovie} />}
       {isLoading && <Loader />}
 
-      {/* Умовний рендеринг модального вікна */}
       {selectedMovie && (
         <MovieModal movie={selectedMovie} onClose={handleCloseModal} />
       )}

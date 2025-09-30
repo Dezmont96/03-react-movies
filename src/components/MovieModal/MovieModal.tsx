@@ -19,17 +19,14 @@ const MovieModal = ({ movie, onClose }: MovieModalProps) => {
       }
     };
 
-    // Додаємо слухач подій
     window.addEventListener('keydown', handleKeyDown);
-    // Блокуємо скрол
     document.body.style.overflow = 'hidden';
 
-    // Функція очищення, яка виконується при розмонтуванні компонента
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'auto';
     };
-  }, [onClose]); // Залежність, щоб useEffect знав про функцію onClose
+  }, [onClose]);
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -37,7 +34,7 @@ const MovieModal = ({ movie, onClose }: MovieModalProps) => {
     }
   };
   
-  if (!modalRoot) return null; // Захист, якщо елемент не знайдено
+  if (!modalRoot) return null;
 
   return createPortal(
     <div className={styles.backdrop} onClick={handleBackdropClick}>
