@@ -1,55 +1,82 @@
-import { useState } from 'react';
-import css from './App.module.css';
-import CafeInfo from '../CafeInfo/CafeInfo';
-import VoteOptions from '../VoteOptions/VoteOptions';
-import VoteStats from '../VoteStats/VoteStats';
-import Notification from '../Notification/Notification';
-import type { Votes, VoteType } from '../../types/votes';
+import { useEffect, useState } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
+import { fetchMovies } from '../../services/movieService';
+import type { Movie } from '../../types/movie';
+
+import SearchBar from '../SearchBar/SearchBar';
+import MovieGrid from '../MovieGrid/MovieGrid';
+import Loader from '../Loader/Loader';
+import ErrorMessage from '../ErrorMessage/ErrorMessage';
+import MovieModal from '../MovieModal/MovieModal'; // Імпортуємо модалку
 
 const App = () => {
-  const [votes, setVotes] = useState<Votes>({
-    good: 0,
-    neutral: 0,
-    bad: 0,
-  });
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState<string>('');
+  
+  // Новий стан для обраного фільму
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const handleVote = (type: VoteType) => {
-    setVotes(prevVotes => ({
-      ...prevVotes,
-      [type]: prevVotes[type] + 1,
-    }));
+  useEffect(() => {
+    // ... (код для запиту фільмів залишається без змін)
+    if (query === '') {
+      return;
+    }
+
+    const getMovies = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        setMovies([]);
+
+        const data = await fetchMovies(query);
+
+        if (data.results.length === 0) {
+          toast.error('No movies found for your request.');
+        } else {
+          setMovies(data.results);
+        }
+      } catch (err) {
+         console.error(err);
+        const message = 'There was an error, please try again...';
+        setError(message);
+        toast.error(message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getMovies();
+  }, [query]);
+
+  const handleSearch = (searchQuery: string) => {
+    setQuery(searchQuery);
   };
 
-  const resetVotes = () => {
-    setVotes({
-      good: 0,
-      neutral: 0,
-      bad: 0,
-    });
+  // Функція для відкриття модального вікна
+  const handleSelectMovie = (movie: Movie) => {
+    setSelectedMovie(movie);
   };
 
-  const totalVotes = votes.good + votes.neutral + votes.bad;
-
-  const positiveRate =
-    totalVotes > 0 ? Math.round((votes.good / totalVotes) * 100) : 0;
+  // Функція для закриття модального вікна
+  const handleCloseModal = () => {
+    setSelectedMovie(null);
+  };
 
   return (
-    <div className={css.app}>
-      <CafeInfo />
-      <VoteOptions
-        onVote={handleVote}
-        onReset={resetVotes}
-        canReset={totalVotes > 0}
-      />
+    <div>
+      <Toaster position="top-right" reverseOrder={false} />
+      
+      <SearchBar onSubmit={handleSearch} />
 
-      {totalVotes > 0 ? (
-        <VoteStats
-          votes={votes}
-          totalVotes={totalVotes}
-          positiveRate={positiveRate}
-        />
-      ) : (
-        <Notification />
+      {error && <ErrorMessage message={error} />}
+      {movies.length > 0 && <MovieGrid movies={movies} onSelect={handleSelectMovie} />}
+      {isLoading && <Loader />}
+
+      {/* Умовний рендеринг модального вікна */}
+      {selectedMovie && (
+        <MovieModal movie={selectedMovie} onClose={handleCloseModal} />
       )}
     </div>
   );
